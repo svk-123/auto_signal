@@ -34,13 +34,11 @@ def kcf_pairs_SR():
         "ADA/USDT:USDT",
         "OP/USDT:USDT",
         "DYDX/USDT:USDT",
-	"MATIC/USDT:USDT",
 	"AAVE/USDT:USDT",
 	"ALGO/USDT:USDT",
 	"AVAX/USDT:USDT",
 	"APT/USDT:USDT",
-	"APE/USDT:USDT",
-	"MATIC/USDT:USDT"       
+	"APE/USDT:USDT"
         ]
 
     return pairs
@@ -74,13 +72,11 @@ def kcf_pairs_stable100():
         "ALGO/USDT:USDT",
         "AVAX/USDT:USDT",
         "FTM/USDT:USDT",
-        "MATIC/USDT:USDT",
         "THETA/USDT:USDT",
         "ATOM/USDT:USDT",
         "CHZ/USDT:USDT",
         "ENJ/USDT:USDT",
         "MANA/USDT:USDT",
-        "OCEAN/USDT:USDT",
         "BAT/USDT:USDT",
         "QTUM/USDT:USDT",
         "ONT/USDT:USDT",
@@ -89,7 +85,6 @@ def kcf_pairs_stable100():
         "BAND/USDT:USDT",
         "MKR/USDT:USDT",
         "RVN/USDT:USDT",
-        "MIR/USDT:USDT",
         "SHIB/USDT:USDT",
         "ICP/USDT:USDT",
         "DYDX/USDT:USDT",

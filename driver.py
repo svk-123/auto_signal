@@ -25,8 +25,8 @@ from baseTrade import baseTrade
 #--------------------------------
 
 exchange=baseExchange().getExchange()
-pairs=kcf_pairs_SR()
-#pairs=kcf_pairs_stable100()
+#pairs=kcf_pairs_SR()
+pairs=kcf_pairs_stable100()
 #pairs=['MATIC/USDT:USDT']
 
 ######-------------------------------------------------------------------------
@@ -36,11 +36,11 @@ pairs=kcf_pairs_SR()
 def scan_pairs():
     
     print('Scaning pairs')
-    for i in range(10):
+    for i in range(50):
 
         p1=PullBackStrategy1(exchange=exchange,
                           pair=pairs[i],
-                          timeframe='5m',
+                          timeframe='1h',
                           htimeframe='4h',
                           limit=200,
                           plot=False,
@@ -48,17 +48,17 @@ def scan_pairs():
                           trade=True,
                           dryrun=True
                           )
-    print('-----------------Trade Status-------------------')    
+    print('-----------------Live Trade Status-------------------') 
     print(baseTrade.liveTrade)
     print('------------------------------------------------')
     
-    print('-----------------Hist Status-------------------')    
+    print('-----------------Hist Trade Status-------------------')    
     print(baseTrade.histTrade)
     print('------------------------------------------------')
 
     return p1
   
-       
+
 
 schedule.every(30).seconds.do(scan_pairs)
 

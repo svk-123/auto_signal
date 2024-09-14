@@ -1,0 +1,8 @@
+__pycache__/
+backtest/__pycache__/
+basePlot/__pycache__/
+baseTrade/__pycache__/
+customIndicators/__pycache__/
+exchangeRelated/__pycache__/
+pullData/__pycache__/
+strategy/__pycache__/

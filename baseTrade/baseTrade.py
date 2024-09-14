@@ -18,11 +18,13 @@ class baseTrade:
     liveTrade=pd.DataFrame([],columns=['pair','tF','En','Ex','per_gain','L_or_S','order_status','Exit'])
     histTrade=pd.DataFrame([],columns=['pair','tF','En','Ex','per_gain','L_or_S','order_status','Exit'])
     
+    
     def __init__(self,pair,df,signal=False,timeframe='1h',trade=False,dryrun=True):
         pair=pair
         df=df
         timeframe=timeframe
         signal=signal
+        
         
         if(dryrun==True and signal == True):
             if pair not in baseTrade.liveTrade['pair'].to_numpy() and len(baseTrade.liveTrade) < 5:
@@ -39,15 +41,21 @@ class baseTrade:
         bl=baseTrade.liveTrade
                
         if(df['enter_long'].iloc[-2] == 1):
-            print('Pair: %s Entering Long at: %5f'%(pair,df['o_close'].iloc[-1])) 
-            bl=bl.append({'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],
-                          'Ex':0,'per_gain':0,'L_or_S':'long','order_status':'C','Exit':'open'},ignore_index=True)
+            print('Pair: %s Entering Long at: %5f'%(pair,df['o_close'].iloc[-1]))
+            tmp_dict={'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],'Ex':0,'per_gain':0,'L_or_S':'long','order_status':'C','Exit':'open'}
+            tmp_df=pd.DataFrame([tmp_dict])   
+            bl=pd.concat([bl,tmp_df],ignore_index=True)
+            
             
         if(df['enter_short'].iloc[-2] == 1):
             print('Pair: %s Entering Short at: %5f'%(pair,df['o_close'].iloc[-1]))             
-            bl=bl.append({'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],
-                          'Ex':0,'per_gain':0,'L_or_S':'short','order_status':'C','Exit':'open'},ignore_index=True)            
+            tmp_dict={'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],\
+                                   'Ex':0,'per_gain':0,'L_or_S':'short','order_status':'C','Exit':'open'}
+            tmp_df=pd.DataFrame([tmp_dict])    
+            bl=pd.concat([bl,tmp_df],ignore_index=True)           
+            
     
+            
         baseTrade.liveTrade=bl
         
     def watchtrade(self,pair,df):
@@ -106,10 +114,10 @@ class baseTrade:
         bl=baseTrade.liveTrade
         bh=baseTrade.histTrade
 
-        idx=bl[bl['pair']==pair].index[0]
-        
+        idx=bl[bl['pair']==pair].index[0]       
+          
         if(bl['Exit'].loc[idx] !='open'):
-            bh=bh.append(bl.loc[idx])
+            bh=pd.concat([bh,bl.loc[idx:idx+1]],ignore_index=True)
             bl=bl.drop(idx)
             print('%s moved from live to hist'%pair)
             
