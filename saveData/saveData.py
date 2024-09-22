@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Oct 11 19:53:46 2022
+
 @author: vino
 """
 import sys
@@ -22,7 +23,6 @@ import math
 warnings.simplefilter(action='ignore') 
 
 class basePullData:
-    
     '''
     class: basePullData
     
@@ -31,7 +31,6 @@ class basePullData:
     '''
     
     def __init__(self,exchange,pair,timeframe='1h',htimeframe='4h',limit=100,plot=False):
-        
         '''
         Parameters
         ----------
@@ -63,22 +62,28 @@ class basePullData:
         self.limit=limit
         self.htimeframe=htimeframe
         
-        #higher timeframe
         #print('Pulling data %s-%s'%(self.pair,self.htimeframe))
-        self.df_h=self.get_bars(self.exhange,self.pair,self.htimeframe,self.limit)
+        # #higher timeframe
+        # self.df_h=self.get_bars(self.exhange,self.pair,self.htimeframe,self.limit)
+        # df_h_ha=self.get_heikin_ashi(self.df_h)
+        # self.df_h = self.df_h.join(df_h_ha)
         
         #actual timeframe
         #print('Pulling data %s-%s'%(self.pair,self.timeframe))
         self.df=self.get_bars(self.exhange,self.pair,self.timeframe,self.limit)
         
-                     
-        self.df.columns=['open', 'high', 'low', 'close', 'volume','o_time','date']
-        self.df_h.columns=['open', 'high', 'low', 'close', 'volume','o_time','date']
-        # self.df[cols] = self.df[cols].apply(pd.to_numeric)
-        # self.df_h[cols] = self.df_h[cols].apply(pd.to_numeric)
+       
+        df_ha=self.get_heikin_ashi(self.df)
+        self.df = self.df.join(df_ha)
+        
+        #assign same time fraem for hr time frame
+        self.df_h=self.df
+        
+        cols=['open','close','high','low']
+        self.df[cols] = self.df[cols].apply(pd.to_numeric)
+
         
     def get_bars(self,exchange,pair,timeframe,limit=100):
-        
         '''
         Pulls the candle data from exchange
 
@@ -99,36 +104,35 @@ class basePullData:
             DESCRIPTION.
 
         '''
+        tmp_bar=pd.DataFrame([],columns=['time','o_open','o_high','o_low','o_close','o_volume'])
         
-
-                
+        
         if(limit > 200):
-            tmp_bar=pd.DataFrame([],columns=['time','o_open','o_high','o_low','o_close','o_volume'])            
+            
             for i in range(int((limit/200))):
-                #print('pull limit',limit-i*200)
+                print('pull limit',limit-i*200)
                 tmp_bar1=exchange.fetch_ohlcv(pair,timeframe=timeframe,limit=limit-i*200)
                 tmp_bar2=pd.DataFrame(tmp_bar1,columns=['time','o_open','o_high','o_low','o_close','o_volume'])
                 tmp_bar=pd.concat([tmp_bar,tmp_bar2],ignore_index=True)
             #df_tmp=tmp_bar.drop_duplicates(subset=['time'])
-            df_tmp=tmp_bar.copy()
-            df_tmp['o_time']=df_tmp['time'].copy()
+            df_tmp=tmp_bar.copy()        
             df_tmp['time']=pd.to_datetime(df_tmp['time'],unit='ms')
-            df_tmp['date']=df_tmp['time'].dt.date
             df_tmp=df_tmp.set_index('time') 
-                
+                                  
+        
         else:
         
             bars=exchange.fetch_ohlcv(pair,timeframe=timeframe,limit=limit)
             df_tmp=pd.DataFrame(bars,columns=['time','o_open','o_high','o_low','o_close','o_volume'])
             df_tmp['o_time']=df_tmp['time'].copy()
             df_tmp['time']=pd.to_datetime(df_tmp['time'],unit='ms')
-            df_tmp['date']=df_tmp['time'].dt.date
-            df_tmp=df_tmp.set_index('time') 
+            df_tmp=df_tmp.set_index('time')
             
+        #df_tmp=df_tmp.iloc[:-50]
         return df_tmp
 
+
     def get_heikin_ashi(self,df):
-        
         '''
         converts candle data into HA candle data 
 
@@ -145,6 +149,7 @@ class basePullData:
         '''
         
         heikin_ashi_df = pd.DataFrame(index=df.index.values, columns=['open', 'high', 'low', 'close'])
+        
         heikin_ashi_df['close'] = (df['o_open'] + df['o_high'] + df['o_low'] + df['o_close']) / 4
         
         # for i in range(len(df)):
@@ -152,8 +157,11 @@ class basePullData:
         #         heikin_ashi_df.iat[0, 0] = df['o_open'].iloc[0]
         #     else:
         #         heikin_ashi_df.iat[i, 0] = (heikin_ashi_df.iat[i-1, 0] + heikin_ashi_df.iat[i-1, 3]) / 2
+            
         # heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(df['o_high']).max(axis=1)
+
         # heikin_ashi_df['low'] = heikin_ashi_df.loc[:, ['open', 'close']].join(df['o_low']).min(axis=1)
+        
         # heikin_ashi_df['volume'] = df['o_volume'] 
         
         return heikin_ashi_df

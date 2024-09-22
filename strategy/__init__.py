@@ -12,3 +12,4 @@ from .PatternStrategy import PatternStrategy
 from .PullBackStrategy1 import PullBackStrategy1 
 from .PullBackStrategy2 import PullBackStrategy2
 from .BreakoutStrategy1 import BreakoutStrategy1
+from .CPRStrategy import CPRStrategy

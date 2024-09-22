@@ -15,6 +15,7 @@ pd.set_option('display.max_columns',20)
 class baseTrade:
     #bug base trade is called only when ther eis signal in L-1
     #so there is a probel with watching the live trades and updateing it
+    #later append all live and hist trade to file
     liveTrade=pd.DataFrame([],columns=['pair','tF','En','Ex','per_gain','L_or_S','order_status','Exit'])
     histTrade=pd.DataFrame([],columns=['pair','tF','En','Ex','per_gain','L_or_S','order_status','Exit'])
     
@@ -27,7 +28,7 @@ class baseTrade:
         
         
         if(dryrun==True and signal == True):
-            if pair not in baseTrade.liveTrade['pair'].to_numpy() and len(baseTrade.liveTrade) < 5:
+            if pair not in baseTrade.liveTrade['pair'].to_numpy() and len(baseTrade.liveTrade) < 50:
                 self.checkEntry(pair,df,timeframe)
         
         #call watch trade only if pair in livepairs                
@@ -40,16 +41,16 @@ class baseTrade:
         # check for enter signal in the last & last -1 candle
         bl=baseTrade.liveTrade
                
-        if(df['enter_long'].iloc[-2] == 1):
-            print('Pair: %s Entering Long at: %5f'%(pair,df['o_close'].iloc[-1]))
-            tmp_dict={'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],'Ex':0,'per_gain':0,'L_or_S':'long','order_status':'C','Exit':'open'}
+        if(df['enter_long'].iloc[-1] == 1):
+            print('Pair: %s Entering Long at: %5f'%(pair,df['close'].iloc[-1]))
+            tmp_dict={'pair':pair,'tF':timeframe,'En':df['close'].iloc[-1],'Ex':0,'per_gain':0,'L_or_S':'long','order_status':'C','Exit':'open'}
             tmp_df=pd.DataFrame([tmp_dict])   
             bl=pd.concat([bl,tmp_df],ignore_index=True)
             
             
-        if(df['enter_short'].iloc[-2] == 1):
-            print('Pair: %s Entering Short at: %5f'%(pair,df['o_close'].iloc[-1]))             
-            tmp_dict={'pair':pair,'tF':timeframe,'En':df['o_close'].iloc[-1],\
+        if(df['enter_short'].iloc[-1] == 1):
+            print('Pair: %s Entering Short at: %5f'%(pair,df['close'].iloc[-1]))             
+            tmp_dict={'pair':pair,'tF':timeframe,'En':df['close'].iloc[-1],\
                                    'Ex':0,'per_gain':0,'L_or_S':'short','order_status':'C','Exit':'open'}
             tmp_df=pd.DataFrame([tmp_dict])    
             bl=pd.concat([bl,tmp_df],ignore_index=True)           
@@ -71,29 +72,37 @@ class baseTrade:
             
             #update close price for open trade
             if (bl['L_or_S'].loc[idx]=='long' and bl['Exit'].loc[idx]=='open'):
-                bl['Ex'].loc[idx]=df['o_close'].iloc[-1]
-                bl['per_gain'].loc[idx]=((df['o_close'].iloc[-1]-bl['En'].loc[idx])/bl['En'].loc[idx])*100
-                print('watching pair',pair,'close',df['o_close'].iloc[-1])
+                bl['Ex'].loc[idx]=df['close'].iloc[-1]
+                bl['per_gain'].loc[idx]=((df['close'].iloc[-1]-bl['En'].loc[idx])/bl['En'].loc[idx])*100
+                print('watching pair',pair,'close',df['close'].iloc[-1])
             if (bl['L_or_S'].loc[idx]=='short' and bl['Exit'].loc[idx]=='open'):
-                bl['Ex'].loc[idx]=df['o_close'].iloc[-1]
-                bl['per_gain'].loc[idx]=((-df['o_close'].iloc[-1]+bl['En'].loc[idx])/bl['En'].loc[idx])*100 
-                print('watching pair',pair,'close',df['o_close'].iloc[-1])
+                bl['Ex'].loc[idx]=df['close'].iloc[-1]
+                bl['per_gain'].loc[idx]=((-df['close'].iloc[-1]+bl['En'].loc[idx])/bl['En'].loc[idx])*100 
+                print('watching pair',pair,'close',df['close'].iloc[-1])
+            
             #if exit signal (closed candle)
             #(bug: if enty forms after exit, then this logic fails
             #need to include time of candle as well)
             #then enter only with L-1 candle
-            
             if(df['exit_long'].iloc[-1] == 1 and bl['Exit'].loc[idx]=='open'):
-                print('Pair: %s Exiting Long at: %5f'%(pair,df['o_close'].iloc[-1]))
-                bl['Ex'].loc[idx]=df['o_close'].iloc[-1]
-                bl['Exit'].loc[idx]='signal'
+                print('Pair: %s Exiting Long at: %5f'%(pair,df['close'].iloc[-1]))
+                bl['Ex'].loc[idx]=df['close'].iloc[-1]
+                
+                if(df['exit_reason'].iloc[-1] =='open'):
+                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-2]           
+                else:
+                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
                 
             #if exit signal (closed candle)
             if(df['exit_short'].iloc[-1] == 1 and bl['Exit'].loc[idx]=='open'):
-                print('Pair: %s Exiting Short at: %5f'%(pair,df['o_close'].iloc[-1]))
-                bl['Ex'].loc[idx]=df['o_close'].iloc[-1]
-                bl['Exit'].loc[idx]='signal'            
-            
+                print('Pair: %s Exiting Short at: %5f'%(pair,df['close'].iloc[-1]))
+                bl['Ex'].loc[idx]=df['close'].iloc[-1]
+                
+                if(df['exit_reason'].iloc[-1] =='open'):
+                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-2]           
+                else:
+                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
+                    
             # #check if stoploss (both long & short)
             # if(bl['L_or_S'].loc[idx]=='long' and bl['Exit'].loc[idx]=='open'):
             #     if((bl['En'].loc[idx]-df['o_close'].iloc[-1])/bl['En'].loc[idx] >=3.0):

@@ -8,7 +8,6 @@ Created on Tue Oct 11 19:53:46 2022
 import sys
 import os
  
-
 def kcf_pairs_stable8():
 
     pairs=["BTC/USDT:USDT",
@@ -18,7 +17,6 @@ def kcf_pairs_stable8():
         "GALA/USDT:USDT",
         "KDA/USDT:USDT",
         "JASMY/USDT:USDT",
-        "DYDX/USDT:USDT"    
         ]
     
     return pairs
@@ -140,7 +138,4 @@ def kcf_pairs_stable100():
     return pairs           
 
 def spot_pairs():
-
-    pairs=["FLUX/USDT"
-  
-         ]       
+    pairs=["FLUX/USDT"]       

@@ -18,7 +18,7 @@ pd.set_option("display.precision", 8)
 from config import kcf_pairs_stable8,kcf_pairs_stable100, kcf_pairs_SR
 from exchangeRelated import baseExchange
 from pullData import basePullData
-from strategy import HAEmaStrategy, HAEmaRsiPsarStrategy, PatternStrategy, PullBackStrategy1, BreakoutStrategy1
+from strategy import HAEmaStrategy, HAEmaRsiPsarStrategy, PatternStrategy, PullBackStrategy1, BreakoutStrategy1, CPRStrategy 
 from backtest import baseBacktest
 from basePlot import candlePlot
 from baseTrade import baseTrade
@@ -28,6 +28,7 @@ exchange=baseExchange().getExchange()
 #pairs=kcf_pairs_SR()
 pairs=kcf_pairs_stable100()
 #pairs=['MATIC/USDT:USDT']
+#pairs=kcf_pairs_stable8()
 
 ######-------------------------------------------------------------------------
 ######-----------------------------Driver for Trade----------------------------
@@ -36,12 +37,12 @@ pairs=kcf_pairs_stable100()
 def scan_pairs():
     
     print('Scaning pairs')
-    for i in range(50):
+    for i in range(10):
 
-        p1=PullBackStrategy1(exchange=exchange,
+        p1=CPRStrategy(exchange=exchange,
                           pair=pairs[i],
-                          timeframe='1h',
-                          htimeframe='4h',
+                          timeframe='5m',
+                          htimeframe='1d',
                           limit=200,
                           plot=False,
                           backtest=False,
@@ -58,10 +59,7 @@ def scan_pairs():
 
     return p1
   
-
-
 schedule.every(30).seconds.do(scan_pairs)
-
 while True:
     schedule.run_pending()
     time.sleep(1)
@@ -70,21 +68,21 @@ while True:
 ######-----------------------------Driver for Test/Backtest--------------------
 ######-------------------------------------------------------------------------
 
-# for i in range(10):
+# for i in range(1):
 #     print(pairs[i])    
-#     p1=BreakoutStrategy1(exchange=exchange,
+#     p1=CPRStrategy(exchange=exchange,
 #                           pair=pairs[i],
-#                           timeframe='15m',
-#                           htimeframe='4h',
-#                           limit=200,
+#                           timeframe='5m',
+#                           htimeframe='1d',
+#                           limit=400,
 #                           plot=True,
 #                           backtest=False,
 #                           trade=False,
 #                           dryrun=True
 #                           ) 
+  
     
-    
-# # #print backtest stats    
+# #print backtest stats    
 # baseBacktest.backtestStats()
 # candlePlot.plotShaprpe(baseBacktest.btl)
 # candlePlot.plotShaprpe(baseBacktest.bts)
@@ -104,12 +102,12 @@ while True:
 # print('No of loss: Candle',len(btl[(btl['per_gain'] < 0) & (btl['exit'] == 'candle')]))
 # print('No of loss: psar',len(btl[(btl['per_gain'] < 0) & (btl['exit'] == 'candle')]))
 
-''' 
-Enable live trade visualization while running by pair
-display each pair with Entry, SL, TP, etc
-Interative GUI
+# ''' 
+# Enable live trade visualization while running by pair
+# display each pair with Entry, SL, TP, etc
+# Interative GUI
 
-Verify pulled data is latest data by curunt time
-verify trade taken before candle close as option
-Give last few mins for opening the trade before candle close
-'''
+# Verify pulled data is latest data by curunt time
+# verify trade taken before candle close as option
+# Give last few mins for opening the trade before candle close
+# '''

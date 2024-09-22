@@ -25,7 +25,7 @@ class candlePlot:
     def __init__(self,df,plot):
         pass
         self.plot=plot
-        self.getPlotO(df)
+        self.getPlotCPR(df)
     
     def getPlotO(self,df):
         
@@ -64,8 +64,8 @@ class candlePlot:
                          mpf.make_addplot(df['ema50'],color='blue',width=1),
                          mpf.make_addplot(df['ema200'],color='black',width=1),
                          
-                         mpf.make_addplot(df['ema20_mstd'],color='yellow',width=1),                         
-                         mpf.make_addplot(df['ema20_pstd'],color='yellow',width=1),  
+                         #mpf.make_addplot(df['ema20_mstd'],color='yellow',width=1),                         
+                         #mpf.make_addplot(df['ema20_pstd'],color='yellow',width=1),  
                          
                          #mpf.make_addplot(df['SL'],color='red',width=1.2,marker='_',type='scatter'),     
                          #mpf.make_addplot(df['TP'],color='green',width=1.2,marker='_',type='scatter'),
@@ -86,8 +86,8 @@ class candlePlot:
                          # mpf.make_addplot(df['exit_short'],panel=1,color='red',marker='<',markersize=20,type='scatter'),                            
                          #mpf.make_addplot(df['EnS'],panel=1,color='green',marker='v',markersize=50,type='scatter'),
                          #mpf.make_addplot(df['ExS'],panel=1,color='red',marker='v',markersize=50,type='scatter'),                                                   
-                         #mpf.make_addplot(df['rsi'],panel=2,color='orange',width=1.2,ylim=(10,90)),
-                         #mpf.make_addplot(df['rsi_ema'],panel=2,color='blue',width=1.2,ylim=(10,90)),  
+                         mpf.make_addplot(df['rsi'],panel=2,color='orange',width=1.2,ylim=(10,90)),
+                         mpf.make_addplot(df['rsi_ema'],panel=2,color='blue',width=1.2,ylim=(10,90)),  
                          #mpf.make_addplot(df['PSARl'],color='green',marker='o',markersize=6,type='scatter'), 
                          #mpf.make_addplot(df['PSARs'],color='red',marker='o',markersize=6,type='scatter'),                          
                          #mpf.make_addplot(df['wt1'],panel=3,color='orange',width=1.2,ylim=(-100,100)),
@@ -160,6 +160,35 @@ class candlePlot:
 
         else:
             pass        
+
+    def getPlotCPR(self,df):
+        
+        #df=df.iloc[20:]
+        
+        if self.plot==True:
+                       
+            ms=0.5   
+            lw=0.5
+            add_plot = [ mpf.make_addplot(df['ema20'],color='orange',width=lw),
+                         mpf.make_addplot(df['ema50'],color='blue',width=lw),
+                         mpf.make_addplot(df['pivot'],color='blue',type='scatter',markersize=ms,marker='o'),
+                         mpf.make_addplot(df['BC'],color='blue',type='scatter',markersize=ms,marker='o'),                         
+                         mpf.make_addplot(df['TC'],color='blue',type='scatter',markersize=ms,marker='o'), 
+                         mpf.make_addplot(df['S1'],color='red',type='scatter',markersize=ms,marker='o'),   
+                         mpf.make_addplot(df['S2'],color='red',type='scatter',markersize=ms,marker='o'),   
+                         mpf.make_addplot(df['R1'],color='green',type='scatter',markersize=ms,marker='o'),   
+                         mpf.make_addplot(df['R2'],color='green',type='scatter',markersize=ms,marker='o'),                            
+                       ]
+
+            tmp=df[['open','close','high','low','volume']]
+            tmp.columns=['open','close','high','low','volume']
+            
+            mpf.plot(tmp,addplot=add_plot,xrotation=10,type='candle',figratio=(1.5,1),figscale=2,style='sas',\
+                                 savefig=dict(fname='fig.jpg',dpi=300))
+
+        else:
+            pass         
+        
     @staticmethod    
     def plotShaprpe(tmp): 
         
