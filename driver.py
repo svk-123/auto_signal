@@ -34,58 +34,60 @@ pairs=kcf_pairs_stable100()
 ######-----------------------------Driver for Trade----------------------------
 ######-------------------------------------------------------------------------
 
-def scan_pairs():
+# def scan_pairs():
     
-    print('Scaning pairs')
-    for i in range(10):
+#     print('Scaning pairs')
+#     for i in range(20):
 
-        p1=CPRStrategy(exchange=exchange,
-                          pair=pairs[i],
-                          timeframe='5m',
-                          htimeframe='1d',
-                          limit=200,
-                          plot=False,
-                          backtest=False,
-                          trade=True,
-                          dryrun=True
-                          )
-    print('-----------------Live Trade Status-------------------') 
-    print(baseTrade.liveTrade)
-    print('------------------------------------------------')
+#         p1=CPRStrategy(exchange=exchange,
+#                           pair=pairs[i],
+#                           timeframe='5m',
+#                           htimeframe='1d',
+#                           limit=200,
+#                           plot=False,
+#                           backtest=False,
+#                           trade=True,
+#                           dryrun=True
+#                           )
+#     print('-----------------Live Trade Status-------------------') 
+#     print(baseTrade.liveTrade)
+#     print('------------------------------------------------')
     
-    print('-----------------Hist Trade Status-------------------')    
-    print(baseTrade.histTrade)
-    print('------------------------------------------------')
+#     print('-----------------Hist Trade Status-------------------')    
+#     print(baseTrade.histTrade)
+#     print('------------------------------------------------')
 
-    return p1
+#     return p1
   
-schedule.every(30).seconds.do(scan_pairs)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# schedule.every(30).seconds.do(scan_pairs)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
  
 ######-------------------------------------------------------------------------
 ######-----------------------------Driver for Test/Backtest--------------------
 ######-------------------------------------------------------------------------
 
-# for i in range(1):
-#     print(pairs[i])    
-#     p1=CPRStrategy(exchange=exchange,
-#                           pair=pairs[i],
-#                           timeframe='5m',
-#                           htimeframe='1d',
-#                           limit=400,
-#                           plot=True,
-#                           backtest=False,
-#                           trade=False,
-#                           dryrun=True
-#                           ) 
-  
+for i in range(1):
+    print(pairs[i])    
+    p1=CPRStrategy(exchange=exchange,
+                          pair=pairs[i],
+                          timeframe='5m',
+                          htimeframe='1d',
+                          limit=200,
+                          plot=False,
+                          backtest=True,
+                          csv_data=True,
+                          trade=False,
+                          dryrun=True
+                          ) 
     
-# #print backtest stats    
-# baseBacktest.backtestStats()
-# candlePlot.plotShaprpe(baseBacktest.btl)
-# candlePlot.plotShaprpe(baseBacktest.bts)
+#print backtest stats    
+baseBacktest.backtestStats()
+
+
+#candlePlot.plotShaprpe(baseBacktest.btl)
+#candlePlot.plotShaprpe(baseBacktest.bts)
 
 # btl=baseBacktest.btl
 # #profit

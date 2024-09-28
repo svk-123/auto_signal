@@ -87,21 +87,13 @@ class baseTrade:
             if(df['exit_long'].iloc[-1] == 1 and bl['Exit'].loc[idx]=='open'):
                 print('Pair: %s Exiting Long at: %5f'%(pair,df['close'].iloc[-1]))
                 bl['Ex'].loc[idx]=df['close'].iloc[-1]
-                
-                if(df['exit_reason'].iloc[-1] =='open'):
-                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-2]           
-                else:
-                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
+                bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
                 
             #if exit signal (closed candle)
             if(df['exit_short'].iloc[-1] == 1 and bl['Exit'].loc[idx]=='open'):
                 print('Pair: %s Exiting Short at: %5f'%(pair,df['close'].iloc[-1]))
                 bl['Ex'].loc[idx]=df['close'].iloc[-1]
-                
-                if(df['exit_reason'].iloc[-1] =='open'):
-                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-2]           
-                else:
-                    bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
+                bl['Exit'].loc[idx]=df['exit_reason'].iloc[-1]
                     
             # #check if stoploss (both long & short)
             # if(bl['L_or_S'].loc[idx]=='long' and bl['Exit'].loc[idx]=='open'):

@@ -163,12 +163,39 @@ class candlePlot:
 
     def getPlotCPR(self,df):
         
-        #df=df.iloc[20:]
+        df=df.iloc[:3000]
         
+        df['enter_long1']=df['enter_long'].copy()
+        df['exit_long1']=df['exit_long'].copy()
+        df['enter_short1']=df['enter_short'].copy()
+        df['exit_short1']=df['exit_short'].copy()
+        
+        for i in range(df.shape[0]):
+            if(df['enter_long'].iloc[i]==1):
+                df['enter_long1'].iloc[i]=df['low'].iloc[i]
+            else:
+                df['enter_long1'].iloc[i]=np.nan
+                
+            if(df['exit_long'].iloc[i]==1):
+                df['exit_long1'].iloc[i]=df['low'].iloc[i]                
+            else:
+                df['exit_long1'].iloc[i]=np.nan
+                
+            # if(df['enter_short'].iloc[i]==1):
+            #     df['enter_short1'].iloc[i]=df['high'].iloc[i]
+            # else:
+            #     df['enter_short1'].iloc[i]=np.nan
+                
+            # if(df['exit_short'].iloc[i]==1):
+            #     df['exit_short1'].iloc[i]=df['high'].iloc[i]                
+            # else:
+            #     df['exit_short1'].iloc[i]=np.nan                
+                
         if self.plot==True:
                        
-            ms=0.5   
-            lw=0.5
+            ms=0.1   
+            lw=0.1
+            
             add_plot = [ mpf.make_addplot(df['ema20'],color='orange',width=lw),
                          mpf.make_addplot(df['ema50'],color='blue',width=lw),
                          mpf.make_addplot(df['pivot'],color='blue',type='scatter',markersize=ms,marker='o'),
@@ -177,15 +204,22 @@ class candlePlot:
                          mpf.make_addplot(df['S1'],color='red',type='scatter',markersize=ms,marker='o'),   
                          mpf.make_addplot(df['S2'],color='red',type='scatter',markersize=ms,marker='o'),   
                          mpf.make_addplot(df['R1'],color='green',type='scatter',markersize=ms,marker='o'),   
-                         mpf.make_addplot(df['R2'],color='green',type='scatter',markersize=ms,marker='o'),                            
+                         mpf.make_addplot(df['R2'],color='green',type='scatter',markersize=ms,marker='o'),
+                         mpf.make_addplot(df['enter_long'],color='green',type='scatter',markersize=5,marker='^'),
+                         mpf.make_addplot(df['exit_long'],color='red',type='scatter',markersize=5,marker='^'),
+                         #mpf.make_addplot(df['enter_short'],color='green',type='scatter',markersize=5,marker='o'),
+                         #mpf.make_addplot(df['exit_short'],color='red',type='scatter',markersize=5,marker='o'),
+                         mpf.make_addplot(df['enter_long1'],color='green',type='scatter',markersize=5,marker='^'),    
+                         mpf.make_addplot(df['exit_long1'],color='red',type='scatter',markersize=5,marker='^'), 
+                         #mpf.make_addplot(df['enter_short1'],color='green',type='scatter',markersize=5,marker='v'),    
+                         #mpf.make_addplot(df['exit_short1'],color='red',type='scatter',markersize=5,marker='v'),                           
                        ]
 
             tmp=df[['open','close','high','low','volume']]
             tmp.columns=['open','close','high','low','volume']
             
-            mpf.plot(tmp,addplot=add_plot,xrotation=10,type='candle',figratio=(1.5,1),figscale=2,style='sas',\
+            mpf.plot(tmp,addplot=add_plot,xrotation=10,type='candle',figratio=(5,1),figscale=2,style='sas',\
                                  savefig=dict(fname='fig.jpg',dpi=300))
-
         else:
             pass         
         

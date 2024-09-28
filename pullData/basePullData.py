@@ -77,6 +77,9 @@ class basePullData:
         # self.df[cols] = self.df[cols].apply(pd.to_numeric)
         # self.df_h[cols] = self.df_h[cols].apply(pd.to_numeric)
         
+        #self.df.to_csv('BTC_5m.csv')
+        #self.df_h.to_csv('BTC_1d.csv')        
+        
     def get_bars(self,exchange,pair,timeframe,limit=100):
         
         '''
@@ -101,11 +104,12 @@ class basePullData:
         '''
         
 
-                
+        #implement try/except in timeout error        
         if(limit > 200):
             tmp_bar=pd.DataFrame([],columns=['time','o_open','o_high','o_low','o_close','o_volume'])            
             for i in range(int((limit/200))):
                 #print('pull limit',limit-i*200)
+                
                 tmp_bar1=exchange.fetch_ohlcv(pair,timeframe=timeframe,limit=limit-i*200)
                 tmp_bar2=pd.DataFrame(tmp_bar1,columns=['time','o_open','o_high','o_low','o_close','o_volume'])
                 tmp_bar=pd.concat([tmp_bar,tmp_bar2],ignore_index=True)

@@ -29,49 +29,44 @@ class CPRStrategy(baseStrategy):
     class CPRStrategy
     '''
     
-    def __init__(self,exchange,pair,timeframe,htimeframe,limit,plot=False,backtest=False,trade=False,dryrun=True):
-        
-        tmp=basePullData(exchange,pair,timeframe,htimeframe,limit,plot=False)
-        
-        self.df=tmp.df
-        self.df_h=tmp.df_h
-        self.signal=True
-        
+    def __init__(self,exchange,pair,timeframe,htimeframe,limit,plot=False,backtest=False,csv_data=False,trade=False,dryrun=True):
+                
+        if (csv_data==False): 
+            tmp=basePullData(exchange,pair,timeframe,htimeframe,limit,plot=False)
+            self.df=tmp.df
+            self.df_h=tmp.df_h
+            self.signal=True
+            
+        elif (csv_data==True):             
+            self.df=pd.read_csv('BTC_5m.csv',header=[0])
+            self.df['time']=pd.to_datetime(self.df['time'])
+            self.df['date']=pd.to_datetime(self.df['date'])
+            
+            self.df_h=pd.read_csv('BTC_1d.csv',header=[0]) 
+            self.df_h['time']=pd.to_datetime(self.df_h['time'])
+            self.df_h['date']=pd.to_datetime(self.df_h['date'])
+            
         #get signals in df
-        self.df=self.getSignal(self.df, self.df_h, timeframe, pair)
+        self.df=self.getReqParam(self.df, self.df_h, timeframe, pair)
+   
         
-        if plot:
+        if (backtest==False):
+            self.df=self.getSignal(self.df,timeframe, pair)
+            
+        if (plot==True and backtest==False):
             candlePlot(self.df, plot=True)
+        
         if backtest:
             baseBacktest(self.df,pair)
-         
+
+            
         if (trade==True and dryrun==True):
             baseTrade(pair,self.df,self.signal,timeframe,trade=True,dryrun=True)
-                        
-            
-    def getSignal(self,df,df_h,timeframe,pair):
+                                          
+    def getReqParam(self,df,df_h,timeframe,pair):
         '''
-        This method populates the enter long/exit long & enter short/exit short signal.
-        This has to populate the following(required for backtest & trade):
-            
-            1. Enter long
-            2. Enter short
-            3. Exit Long
-            4. Exit short
-            5. Stop loss
-            6. take profit
-            7. exit reson 
-            
-            df['enter_long']=0
-            df['exit_long']=0
-            df['enter_short']=0
-            df['exit_short']=0 
-            
-            df['SL']=np.nan
-            df['TP']=np.nan
-            df['exit_reason']=0 
-                        
-        
+        get all required base parameter for CPR
+                                
         Parameters
         ----------
         '''
@@ -101,17 +96,47 @@ class CPRStrategy(baseStrategy):
             
             return df_tmp
         df_h=getCPR(df_h)
-        
-        
+                
         ###pivots are calculated based on previous day candles.
         ###hence offset date +1 to match yesterday pivots with today's 5m chart
-        
         tmp=df_h[['date','pivot','BC','TC','S1','S2','R1','R2']]
         tmp['date']=tmp['date']+pd.DateOffset(1)
         df=pd.merge(df,tmp,on='date',how='left')
         df['time']=pd.to_datetime(df['o_time'],unit='ms')
         df=df.set_index('time') 
-          
+                          
+        return df
+    
+    
+    def getSignal(self,df,timeframe,pair):
+        '''
+        This method populates the enter long/exit long & enter short/exit short signal.
+        This has to populate the following(required for backtest & trade):
+        on_long, on_short sl, tp date useful only for backtest in for loop
+        in live trade data, these are not valid.
+            
+            1. Enter long
+            2. Enter short
+            3. Exit Long
+            4. Exit short
+            5. Stop loss
+            6. take profit
+            7. exit reson 
+            
+            df['enter_long']=0
+            df['exit_long']=0
+            df['enter_short']=0
+            df['exit_short']=0 
+            
+            df['SL']=np.nan
+            df['TP']=np.nan
+            df['exit_reason']=0 
+                        
+        
+        Parameters
+        ----------
+        '''
+         
         #signal parameters
         df['candle']=99
         df['type']='NA'        
@@ -124,11 +149,11 @@ class CPRStrategy(baseStrategy):
         df['SL']=np.nan
         df['TP']=np.nan
         
-        df['exit_reason']=0          
-             
-    
         on_long=False
         on_short=False
+        
+        df['exit_reason']=0          
+             
         
         trade_long_idx=0
         trade_short_idx=0
@@ -138,9 +163,7 @@ class CPRStrategy(baseStrategy):
         
         sl_long=0
         tp_long=0
-        
-        tp_sl=1.5 
-   
+
    
         ####################################################################
         ##now populate buy & sell signal based on last but 1 candle
@@ -157,45 +180,55 @@ class CPRStrategy(baseStrategy):
         #if live candle moves to closed candle in the meantime between signal & execution, what happens
         #it will happen only in the next pull
         #check live candle should not be in sl/tp while entering with closed candle
-        
+        PR=2
         #signal for long
         if (#(lc['BC'] > lcm1['TC']) and\
             #(lc['ema20_inc']==1 and  lc['ema50_inc']==1) and\
-            #(lc['ema20_A_ema50']==1) and\
+            (lc['ema20_A_ema50']==1) and\
             (on_long==False)):
                         
             if( (lc['close'] > lc['TC']) and (lc['close'] < lc['R1']) ): 
                 sl_long=lc['BC']
                 tp_long=lc['R1']
-                                
-                print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'green'))
-                df['enter_long'].iloc[-1]=1
-                on_long=True                
+                
+                #print('ratio: %s'%pair,((tp_long-lv['close'])/(lv['close']-sl_long)))
+                if( ((tp_long-lv['close'])/(lv['close']-sl_long)) >= PR):                 
+                    print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'green'))
+                    df['enter_long'].iloc[-1]=1
+                    on_long=True                
             
             elif( (lc['close'] > lc['R1']) and (lc['close'] < lc['R2']) ): 
                 sl_long=lc['TC']
                 tp_long=lc['R2'] 
                 
-                print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'green'))
-                df['enter_long'].iloc[-1]=1
-                on_long=True                  
+                #print('ratio: %s'%pair,((tp_long-lv['close'])/(lv['close']-sl_long)))
+                if( ((tp_long-lv['close'])/(lv['close']-sl_long)) >= PR):                 
+                    print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'green'))
+                    df['enter_long'].iloc[-1]=1
+                    on_long=True                  
                          
         if(on_long==True and sl_long != 0):
-               if(lv['close'] <= sl_long or lv['close'] >= tp_long):
+               if(lv['close'] <= sl_long): 
                    on_long=False
-                   df['exit_long'].iloc[-1]=1            
-
+                   df['exit_long'].iloc[-1]=1 
+                   df['exit_reason'].iloc[-1]='sl'
+                   
+               elif(lv['close'] >= tp_long):
+                   on_long=False
+                   df['exit_long'].iloc[-1]=1 
+                   df['exit_reason'].iloc[-1]='tp'
+                   
         #signal for shprt
         if (#(lc['TC'] < lcm1['BC']) and\
             #(lc['ema20_dec']==1 and  lc['ema50_dec']==1) and\
-            #(lc['ema20_B_ema50']==1) and\
+            (lc['ema20_B_ema50']==1) and\
             (on_short==False)):
                         
             if( (lc['close'] < lc['BC']) and (lc['close'] > lc['S1']) ): 
                 sl_short=lc['TC']
                 tp_short=lc['S1']
-                print('ratio: %s'%pair,((lv['close']-tp_short)/(sl_short-lv['close'])))
-                if( ((lv['close']-tp_short)/(sl_short-lv['close'])) >= 1.8): 
+                #print('ratio: %s'%pair,((lv['close']-tp_short)/(sl_short-lv['close'])))
+                if( ((lv['close']-tp_short)/(sl_short-lv['close'])) >= PR): 
      
                     print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'red'))
                     df['enter_short'].iloc[-1]=1
@@ -204,8 +237,8 @@ class CPRStrategy(baseStrategy):
             elif( (lc['close'] < lc['S1']) and (lc['close'] > lc['S2']) ): 
                 sl_short=lc['TC']
                 tp_short=lc['S2'] 
-                print('ratio: %s'%pair,((lv['close']-tp_short)/(sl_short-lv['close'])))               
-                if( ((lv['close']-tp_short)/(sl_short-lv['close'])) >= 1.8): 
+                #print('ratio: %s'%pair,((lv['close']-tp_short)/(sl_short-lv['close'])))               
+                if( ((lv['close']-tp_short)/(sl_short-lv['close'])) >= PR): 
      
                     print(colored('Signal:%s, Price: %s(L1  ), pair: %16s\n'%(timeframe,lv['close'],pair),'red'))
                     df['enter_short'].iloc[-1]=1
@@ -221,9 +254,7 @@ class CPRStrategy(baseStrategy):
                    df['exit_short'].iloc[-1]=1  
                    df['exit_reason'].iloc[-1]='tp'                  
         return df
-    
-    
-    
+        
 
     
     
